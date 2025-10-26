@@ -212,5 +212,5 @@ export async function getDashboardData(): Promise<DashboardTransaction[]> {
     orderBy: { date: "desc" },
   });
 
-  return transactions.map((t) => serializeTransaction(t)) as unknown as DashboardTransaction[];
+  return transactions.map((t: typeof transactions[number]) => serializeTransaction(t)) as unknown as DashboardTransaction[];
 }
