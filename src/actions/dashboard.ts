@@ -65,7 +65,7 @@ export async function getUserAccounts(): Promise<DashboardAccount[]> {
     });
 
     // Serialize accounts before sending to client
-  const serializedAccounts = accounts.map((a) => serializeTransaction(a));
+  const serializedAccounts = accounts.map((a: typeof accounts[number]) => serializeTransaction(a));
 
   return serializedAccounts as unknown as DashboardAccount[];
   } catch (error) {

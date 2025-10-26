@@ -1,6 +1,7 @@
 "use server";
 
 import { db } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 
@@ -98,7 +99,7 @@ export async function bulkDeleteTransactions(transactionIds: string[]) {
     );
 
     // Delete transactions and update account balances in a transaction
-    await db.$transaction(async (tx) => {
+    await db.$transaction(async (tx: Prisma.TransactionClient) => {
       // Delete transactions
       await tx.transaction.deleteMany({
         where: {

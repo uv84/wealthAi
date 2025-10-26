@@ -4,6 +4,7 @@ import { db } from "@/lib/prisma";
 import { subDays } from "date-fns";
 import { randomUUID } from "crypto";
 import type { TransactionStatus } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 
 const ACCOUNT_ID = "97c29248-5d10-446f-b69a-d46c93304bc8";
 const USER_ID = "0aee6a7c-49a1-4c2b-a5b4-509a4545ee92";
@@ -92,7 +93,7 @@ export async function seedTransactions(): Promise<
       }
     }
 
-    await db.$transaction(async (tx) => {
+    await db.$transaction(async (tx: Prisma.TransactionClient) => {
       await tx.transaction.deleteMany({
         where: { accountId: ACCOUNT_ID },
       });
