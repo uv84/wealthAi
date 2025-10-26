@@ -29,7 +29,7 @@ interface BudgetAlertData {
 interface EmailTemplateProps {
   userName?: string;
   type?: "monthly-report" | "budget-alert";
-  data?: MonthlyReportData | BudgetAlertData | Record<string, any>;
+  data?: MonthlyReportData | BudgetAlertData | Record<string, unknown>;
 }
 
 // Dummy data for preview

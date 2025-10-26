@@ -34,7 +34,8 @@ import type { z } from "zod";
 import { ReceiptScanner } from "./recipt-scanner";
 import { motion } from "framer-motion";
 
-type TransactionForm = z.infer<typeof transactionSchema>;
+// Use input type for form values (amount is string in the form)
+type TransactionForm = z.input<typeof transactionSchema>;
 
 type Account = {
   id: string;
@@ -64,7 +65,7 @@ export function AddTransactionForm({
   const searchParams = useSearchParams();
   const editId = searchParams.get("edit");
 
-  const form = useForm({
+  const form = useForm<TransactionForm>({
     resolver: zodResolver(transactionSchema),
     defaultValues:
       editMode && initialData
@@ -100,24 +101,22 @@ export function AddTransactionForm({
     reset,
   } = form;
 
-  // use any generics to avoid action return-type mismatches
-  const {
-    loading: transactionLoading,
-    fn: transactionFn,
-    data: transactionResult,
-    error: transactionError,
-  } = useFetch<any, any>(editMode ? updateTransaction : createTransaction);
+  // Prepare two typed actions and call the appropriate one
+  const create = useFetch(createTransaction);
+  const update = useFetch(updateTransaction);
+  const transactionLoading = create.loading || update.loading;
+  const transactionError = create.error || update.error;
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: TransactionForm) => {
     // Convert amount string to number for the API
     const payload = { 
       ...data, 
       amount: parseFloat(data.amount) 
     };
     if (editMode) {
-      await transactionFn(editId, payload);
+      await update.fn(editId!, payload);
     } else {
-      await transactionFn(payload);
+      await create.fn(payload);
     }
   };
 
@@ -136,22 +135,27 @@ export function AddTransactionForm({
   };
 
   useEffect(() => {
-    if (transactionResult?.success && !transactionLoading) {
+    if ((create.data || update.data)?.success && !(create.loading || update.loading)) {
       toast.success(editMode ? "Transaction updated successfully" : "Transaction created successfully");
       reset();
-      if (transactionResult.data?.accountId) {
-        router.push(`/account/${transactionResult.data.accountId}`);
+      const accId = (
+        editMode
+          ? (update.data?.data as { accountId?: string } | undefined)?.accountId
+          : (create.data?.data as { accountId?: string } | undefined)?.accountId
+      );
+      if (accId) {
+        router.push(`/account/${accId}`);
       } else {
         router.back();
       }
     }
-  }, [transactionResult, transactionLoading, editMode, reset, router]);
+  }, [create.data, update.data, create.loading, update.loading, editMode, reset, router]);
 
   useEffect(() => {
-    if (transactionError) {
+    if (create.error || update.error) {
       toast.error(String(transactionError?.message ?? "Failed to save transaction"));
     }
-  }, [transactionError]);
+  }, [create.error, update.error]);
 
   const type = watch("type");
   const isRecurring = watch("isRecurring");
@@ -182,7 +186,7 @@ export function AddTransactionForm({
             <SelectItem value="INCOME">Income</SelectItem>
           </SelectContent>
         </Select>
-        {errors.type && <p className="text-sm text-red-500">{String((errors.type as any)?.message)}</p>}
+  {errors.type && <p className="text-sm text-red-500">{String(errors.type?.message)}</p>}
       </div>
 
       {/* Amount and Account */}
@@ -195,7 +199,7 @@ export function AddTransactionForm({
             placeholder="0.00"
             {...register("amount")}
           />
-          {errors.amount && <p className="text-sm text-red-500">{String((errors.amount as any)?.message)}</p>}
+          {errors.amount && <p className="text-sm text-red-500">{String(errors.amount?.message)}</p>}
         </div>
 
         <div className="space-y-2">
@@ -220,7 +224,7 @@ export function AddTransactionForm({
               </CreateAccountDrawer>
             </SelectContent>
           </Select>
-          {errors.accountId && <p className="text-sm text-red-500">{String((errors.accountId as any)?.message)}</p>}
+          {errors.accountId && <p className="text-sm text-red-500">{String(errors.accountId?.message)}</p>}
         </div>
       </div>
 
@@ -239,7 +243,7 @@ export function AddTransactionForm({
             ))}
           </SelectContent>
         </Select>
-        {errors.category && <p className="text-sm text-red-500">{String((errors.category as any)?.message)}</p>}
+  {errors.category && <p className="text-sm text-red-500">{String(errors.category?.message)}</p>}
       </div>
 
       {/* Date */}
@@ -265,14 +269,14 @@ export function AddTransactionForm({
             />
           </PopoverContent>
         </Popover>
-        {errors.date && <p className="text-sm text-red-500">{String((errors.date as any)?.message)}</p>}
+  {errors.date && <p className="text-sm text-red-500">{String(errors.date?.message)}</p>}
       </div>
 
       {/* Description */}
       <div className="space-y-2">
         <label className="text-sm font-medium">Description</label>
         <Input placeholder="Enter description" {...register("description")} />
-        {errors.description && <p className="text-sm text-red-500">{String((errors.description as any)?.message)}</p>}
+  {errors.description && <p className="text-sm text-red-500">{String(errors.description?.message)}</p>}
       </div>
 
       {/* Recurring Toggle */}
@@ -301,7 +305,7 @@ export function AddTransactionForm({
               <SelectItem value="YEARLY">Yearly</SelectItem>
             </SelectContent>
           </Select>
-          {errors.recurringInterval && <p className="text-sm text-red-500">{String((errors.recurringInterval as any)?.message)}</p>}
+          {errors.recurringInterval && <p className="text-sm text-red-500">{String(errors.recurringInterval?.message)}</p>}
         </div>
       )}
 

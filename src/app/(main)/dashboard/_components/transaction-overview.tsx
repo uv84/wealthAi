@@ -42,10 +42,10 @@ type Transaction = {
   id: string;
   accountId: string;
   date: string | number | Date;
-  description?: string;
+  description?: string | null;
   amount: number | string;
   type: "EXPENSE" | "INCOME" | string;
-  category?: string;
+  category?: string | null;
 };
 
 export function DashboardOverview({
@@ -172,16 +172,18 @@ export function DashboardOverview({
                     outerRadius={80}
                     fill="#8884d8"
                     dataKey="value"
-                    label={(entry) =>
-                      `${String((entry as any).name)}: $${Number((entry as any).value).toFixed(2)}`
-                    }
+                    label={(props) => {
+                      const name = (props as unknown as { name?: string }).name ?? "";
+                      const value = Number((props as unknown as { value?: number }).value ?? 0);
+                      return `${name}: $${value.toFixed(2)}`;
+                    }}
                   >
                     {pieChartData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
                   <Tooltip
-                    formatter={(value: any) =>
+                    formatter={(value: number | string) =>
                       typeof value === "number" ? `$${value.toFixed(2)}` : String(value)
                     }
                     contentStyle={{

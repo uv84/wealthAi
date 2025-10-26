@@ -1,16 +1,29 @@
 "use server";
 
 import { db } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 
-const serializeDecimal = (obj: any) => {
-  const serialized = { ...obj };
-  if (obj.balance) {
-    serialized.balance = obj.balance.toNumber();
+type WithOptionalDecimal = {
+  balance?: number | Prisma.Decimal;
+  amount?: number | Prisma.Decimal;
+  [key: string]: unknown;
+};
+
+function isPrismaDecimal(v: unknown): v is Prisma.Decimal {
+  return typeof v === "object" && v !== null && "toNumber" in (v as Record<string, unknown>);
+}
+
+const serializeDecimal = <T extends WithOptionalDecimal>(obj: T) => {
+  const serialized: Omit<T, "balance" | "amount"> & { balance?: number; amount?: number } = {
+    ...(obj as unknown as Record<string, unknown>),
+  } as any;
+  if (obj.balance !== undefined) {
+    serialized.balance = isPrismaDecimal(obj.balance) ? obj.balance.toNumber() : (obj.balance as number);
   }
-  if (obj.amount) {
-    serialized.amount = obj.amount.toNumber();
+  if (obj.amount !== undefined) {
+    serialized.amount = isPrismaDecimal(obj.amount) ? obj.amount.toNumber() : (obj.amount as number);
   }
   return serialized;
 };

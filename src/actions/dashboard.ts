@@ -5,19 +5,41 @@ import { db } from "@/lib/prisma";
 import { request } from "@arcjet/next";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
+import type { Prisma } from "@prisma/client";
 
-const serializeTransaction = (obj: any) => {
-  const serialized = { ...obj };
-  if (obj.balance) {
-    serialized.balance = obj.balance.toNumber();
-  }
-  if (obj.amount) {
-    serialized.amount = obj.amount.toNumber();
-  }
-  return serialized;
+type WithOptionalDecimal = {
+  balance?: number | Prisma.Decimal;
+  amount?: number | Prisma.Decimal;
+  [key: string]: unknown;
 };
 
-export async function getUserAccounts() {
+const serializeTransaction = <T extends WithOptionalDecimal>(obj: T) => {
+  const out: Omit<T, "balance" | "amount"> & { balance?: number; amount?: number } = {
+    ...(obj as unknown as Record<string, unknown>),
+  } as any;
+  // Always assign numeric values for balance/amount if fields exist on the object
+  out.balance = typeof obj.balance === "number" ? obj.balance : obj.balance ? obj.balance.toNumber() : 0;
+  out.amount = typeof obj.amount === "number" ? obj.amount : obj.amount ? obj.amount.toNumber() : 0;
+  return out;
+};
+
+export type CreateAccountInput = {
+  name: string;
+  type: "CURRENT" | "SAVINGS";
+  balance: string; // comes as string from form
+  isDefault?: boolean;
+};
+
+export type DashboardAccount = {
+  id: string;
+  name: string;
+  type: "CURRENT" | "SAVINGS";
+  balance: number;
+  isDefault: boolean;
+  _count?: { transactions: number };
+};
+
+export async function getUserAccounts(): Promise<DashboardAccount[]> {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
 
@@ -43,15 +65,16 @@ export async function getUserAccounts() {
     });
 
     // Serialize accounts before sending to client
-    const serializedAccounts = accounts.map(serializeTransaction);
+  const serializedAccounts = accounts.map((a) => serializeTransaction(a));
 
-    return serializedAccounts;
+  return serializedAccounts as unknown as DashboardAccount[];
   } catch (error) {
     console.error(error instanceof Error ? error.message : "Unknown error");
+    return [];
   }
 }
 
-export async function createAccount(data: any) {
+export async function createAccount(data: CreateAccountInput) {
   try {
     const { userId } = await auth();
     if (!userId) throw new Error("Unauthorized");
@@ -161,7 +184,17 @@ export async function deleteAccount(accountId: string) {
   }
 }
 
-export async function getDashboardData() {
+export type DashboardTransaction = {
+  id: string;
+  accountId: string;
+  date: Date;
+  description: string | null;
+  amount: number;
+  type: "EXPENSE" | "INCOME";
+  category: string | null;
+};
+
+export async function getDashboardData(): Promise<DashboardTransaction[]> {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
 
@@ -179,5 +212,5 @@ export async function getDashboardData() {
     orderBy: { date: "desc" },
   });
 
-  return transactions.map(serializeTransaction);
+  return transactions.map((t) => serializeTransaction(t)) as unknown as DashboardTransaction[];
 }

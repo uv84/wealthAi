@@ -26,14 +26,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { createAccount } from "@/actions/dashboard";
+import { createAccount, type CreateAccountInput } from "@/actions/dashboard";
 import { accountSchema } from "@/app/lib/schema";
 import type { z } from "zod";
 
-type AccountForm = z.infer<typeof accountSchema>;
+// Use the input type of the schema (pre-defaults) for the form values
+type AccountForm = z.input<typeof accountSchema>;
 
 export function CreateAccountDrawer({ children }: { children?: ReactNode }) {
-  const form = useForm({
+  const form = useForm<AccountForm>({
     resolver: zodResolver(accountSchema),
     defaultValues: {
       name: "",
@@ -48,9 +49,9 @@ export function CreateAccountDrawer({ children }: { children?: ReactNode }) {
 
   // type the call args as the form shape
   const { loading: createAccountLoading, fn: createAccountFn, error, data: newAccount } =
-    useFetch<[any], unknown>(createAccount);
+    useFetch<[CreateAccountInput], Awaited<ReturnType<typeof createAccount>>>(createAccount);
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: AccountForm) => {
     await createAccountFn(data);
   };
 

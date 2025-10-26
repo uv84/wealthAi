@@ -4,18 +4,31 @@ import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import type { Prisma } from "@prisma/client";
 import aj from "@/lib/arcjet";
 import { request } from "@arcjet/next";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
-const serializeAmount = (obj: any) => ({
-  ...obj,
-  amount: obj.amount.toNumber(),
+type WithAmountDecimal = { amount: number | Prisma.Decimal } & Record<string, unknown>;
+const serializeAmount = <T extends WithAmountDecimal>(obj: T) => ({
+  ...(obj as unknown as Record<string, unknown>),
+  amount: typeof obj.amount === "number" ? obj.amount : obj.amount.toNumber(),
 });
 
+export type TransactionInput = {
+  type: "INCOME" | "EXPENSE";
+  amount: number;
+  description?: string;
+  date: Date;
+  accountId: string;
+  category: string;
+  isRecurring?: boolean;
+  recurringInterval?: "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY";
+};
+
 // Create Transaction
-export async function createTransaction(data: any) {
+export async function createTransaction(data: TransactionInput) {
   try {
     const { userId } = await auth();
     if (!userId) throw new Error("Unauthorized");
@@ -66,7 +79,7 @@ export async function createTransaction(data: any) {
     }
 
     // Calculate new balance
-    const balanceChange = data.type === "EXPENSE" ? -data.amount : data.amount;
+  const balanceChange = data.type === "EXPENSE" ? -data.amount : data.amount;
     const newBalance = account.balance.toNumber() + balanceChange;
 
     // Create transaction and update account balance
@@ -121,7 +134,7 @@ export async function getTransaction(id: string) {
   return serializeAmount(transaction);
 }
 
-export async function updateTransaction(id: string, data: any) {
+export async function updateTransaction(id: string, data: TransactionInput) {
   try {
     const { userId } = await auth();
     if (!userId) throw new Error("Unauthorized");
@@ -151,8 +164,7 @@ export async function updateTransaction(id: string, data: any) {
         ? -originalTransaction.amount.toNumber()
         : originalTransaction.amount.toNumber();
 
-    const newBalanceChange =
-      data.type === "EXPENSE" ? -data.amount : data.amount;
+    const newBalanceChange = data.type === "EXPENSE" ? -data.amount : data.amount;
 
     const netBalanceChange = newBalanceChange - oldBalanceChange;
 
@@ -195,7 +207,13 @@ export async function updateTransaction(id: string, data: any) {
 }
 
 // Get User Transactions
-export async function getUserTransactions(query: any = {}) {
+export type UserTransactionsQuery = Partial<{
+  accountId: string;
+  type: "INCOME" | "EXPENSE";
+  category: string;
+}>;
+
+export async function getUserTransactions(query: UserTransactionsQuery = {}) {
   try {
     const { userId } = await auth();
     if (!userId) throw new Error("Unauthorized");
