@@ -5,11 +5,11 @@ import { db } from "@/lib/prisma";
 import { request } from "@arcjet/next";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
-import type { Prisma } from "@prisma/client";
+type DecimalLike = { toNumber(): number };
 
 type WithOptionalDecimal = {
-  balance?: number | Prisma.Decimal;
-  amount?: number | Prisma.Decimal;
+  balance?: number | DecimalLike;
+  amount?: number | DecimalLike;
   [key: string]: unknown;
 };
 

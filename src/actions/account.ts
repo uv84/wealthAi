@@ -1,17 +1,18 @@
 "use server";
 
 import { db } from "@/lib/prisma";
-import type { Prisma } from "@prisma/client";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 
+type DecimalLike = { toNumber(): number };
+
 type WithOptionalDecimal = {
-  balance?: number | Prisma.Decimal;
-  amount?: number | Prisma.Decimal;
+  balance?: number | DecimalLike;
+  amount?: number | DecimalLike;
   [key: string]: unknown;
 };
 
-function isPrismaDecimal(v: unknown): v is Prisma.Decimal {
+function isDecimalLike(v: unknown): v is DecimalLike {
   return typeof v === "object" && v !== null && "toNumber" in (v as Record<string, unknown>);
 }
 
@@ -20,10 +21,10 @@ const serializeDecimal = <T extends WithOptionalDecimal>(obj: T) => {
     ...(obj as unknown as Record<string, unknown>),
   } as any;
   if (obj.balance !== undefined) {
-    serialized.balance = isPrismaDecimal(obj.balance) ? obj.balance.toNumber() : (obj.balance as number);
+    serialized.balance = isDecimalLike(obj.balance) ? obj.balance.toNumber() : (obj.balance as number);
   }
   if (obj.amount !== undefined) {
-    serialized.amount = isPrismaDecimal(obj.amount) ? obj.amount.toNumber() : (obj.amount as number);
+    serialized.amount = isDecimalLike(obj.amount) ? obj.amount.toNumber() : (obj.amount as number);
   }
   return serialized;
 };
