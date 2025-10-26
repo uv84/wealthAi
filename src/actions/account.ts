@@ -82,14 +82,17 @@ export async function bulkDeleteTransactions(transactionIds: string[]) {
     });
 
     // Group transactions by account to update balances
-    const accountBalanceChanges: Record<string, number> = transactions.reduce((acc, transaction) => {
-      const change =
-        transaction.type === "EXPENSE"
-          ? transaction.amount.toNumber()
-          : -transaction.amount.toNumber();
-      acc[transaction.accountId] = (acc[transaction.accountId] || 0) + change;
-      return acc;
-    }, {} as Record<string, number>);
+    const accountBalanceChanges = transactions.reduce<Record<string, number>>(
+      (acc, transaction) => {
+        const change =
+          transaction.type === "EXPENSE"
+            ? transaction.amount.toNumber()
+            : -transaction.amount.toNumber();
+        acc[transaction.accountId] = (acc[transaction.accountId] || 0) + change;
+        return acc;
+      },
+      {}
+    );
 
     // Delete transactions and update account balances in a transaction
     await db.$transaction(async (tx) => {
