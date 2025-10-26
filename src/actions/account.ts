@@ -83,7 +83,10 @@ export async function bulkDeleteTransactions(transactionIds: string[]) {
 
     // Group transactions by account to update balances
     const accountBalanceChanges: Record<string, number> = transactions.reduce(
-      (acc: Record<string, number>, transaction) => {
+      (
+        acc: Record<string, number>,
+        transaction: { accountId: string; amount: DecimalLike; type: "EXPENSE" | "INCOME" }
+      ) => {
         const change =
           transaction.type === "EXPENSE"
             ? transaction.amount.toNumber()
