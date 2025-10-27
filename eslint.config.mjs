@@ -18,6 +18,9 @@ const eslintConfig = [
       "out/**",
       "build/**",
       "next-env.d.ts",
+      // Ignore generated Prisma client/runtime bundles (may contain require(), unused vars, etc.)
+      "generated/**",
+      "src/generated/**",
     ],
   },
 ];
