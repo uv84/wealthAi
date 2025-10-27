@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUpRight, ArrowDownRight, DeleteIcon, Delete, X, } from "lucide-react";
+import { ArrowUpRight, ArrowDownRight, X } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useEffect, useState } from "react";
 import useFetch from "@/hooks/use-fetch";

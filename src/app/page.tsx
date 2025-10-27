@@ -13,7 +13,6 @@ import {
 import HeroSection from "@/components/hero";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { InfiniteMovingCards } from "../components/ui/infinite-moving-cards";
 import Header from "@/components/header";
 
 const LandingPage = () => {

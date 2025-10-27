@@ -59,7 +59,16 @@ export function AddTransactionForm({
   accounts: Account[];
   categories: Category[];
   editMode?: boolean;
-  initialData?: any | null;
+  initialData?: Partial<{
+    type: "INCOME" | "EXPENSE";
+    amount: number | string;
+    description: string | null;
+    accountId: string;
+    category: string | null;
+    date: string | Date;
+    isRecurring: boolean;
+    recurringInterval: "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY" | null;
+  }> | null;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -152,10 +161,10 @@ export function AddTransactionForm({
   }, [create.data, update.data, create.loading, update.loading, editMode, reset, router]);
 
   useEffect(() => {
-    if (create.error || update.error) {
+    if (transactionError) {
       toast.error(String(transactionError?.message ?? "Failed to save transaction"));
     }
-  }, [create.error, update.error]);
+  }, [transactionError]);
 
   const type = watch("type");
   const isRecurring = watch("isRecurring");

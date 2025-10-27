@@ -18,9 +18,10 @@ function isDecimalLike(v: unknown): v is DecimalLike {
 }
 
 const serializeDecimal = <T extends WithOptionalDecimal>(obj: T) => {
-  const serialized: Omit<T, "balance" | "amount"> & { balance?: number; amount?: number } = {
-    ...(obj as unknown as Record<string, unknown>),
-  } as any;
+  const base = obj as unknown as Omit<T, "balance" | "amount">;
+  const serialized = {
+    ...(base as unknown as Record<string, unknown>),
+  } as Omit<T, "balance" | "amount"> & { balance?: number; amount?: number };
   if (obj.balance !== undefined) {
     serialized.balance = isDecimalLike(obj.balance) ? obj.balance.toNumber() : (obj.balance as number);
   }

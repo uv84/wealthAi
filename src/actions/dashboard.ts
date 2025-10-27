@@ -14,9 +14,10 @@ type WithOptionalDecimal = {
 };
 
 const serializeTransaction = <T extends WithOptionalDecimal>(obj: T) => {
-  const out: Omit<T, "balance" | "amount"> & { balance?: number; amount?: number } = {
-    ...(obj as unknown as Record<string, unknown>),
-  } as any;
+  const base = obj as unknown as Omit<T, "balance" | "amount">;
+  const out = {
+    ...(base as unknown as Record<string, unknown>),
+  } as Omit<T, "balance" | "amount"> & { balance?: number; amount?: number };
   // Always assign numeric values for balance/amount if fields exist on the object
   out.balance = typeof obj.balance === "number" ? obj.balance : obj.balance ? obj.balance.toNumber() : 0;
   out.amount = typeof obj.amount === "number" ? obj.amount : obj.amount ? obj.amount.toNumber() : 0;

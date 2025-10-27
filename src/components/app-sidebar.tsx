@@ -1,17 +1,8 @@
 "use client";
-import {
-  Calendar,
-  ChevronUp,
-  Home,
-  Inbox,
-  Search,
-  Settings,
-  User2,
-  Plus,
-  Nfc,
-} from "lucide-react";
+import { Home, Plus, Nfc } from "lucide-react";
 
-import { SignedIn, SignedOut, SignInButton, UserButton, useUser } from "@clerk/nextjs";
+import { SignedIn, UserButton, useUser } from "@clerk/nextjs";
+import Image from "next/image";
 
 import {
   Sidebar,
@@ -25,12 +16,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import Link from "next/link";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
+// removed unused dropdown imports
 
 // Menu items.
 const items = [
@@ -67,7 +53,7 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupLabel className="flex  items-center mb-6 mt-4">
             <div className="flex items-center justify-center">
-              <img src="./logo-sm.png" alt="logo" height={12} width={45} />
+              <Image src="/logo-sm.png" alt="logo" height={12} width={45} />
               <span className="ml-2 text-2xl font-bold">Welth-Ai</span>
             </div>
           </SidebarGroupLabel>

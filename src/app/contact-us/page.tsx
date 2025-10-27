@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { GalleryVerticalEnd } from "lucide-react";
+import Image from "next/image";
 import { toast } from "sonner";
 import Header from "@/components/header";
 
@@ -32,7 +32,7 @@ function ContactForm() {
       });
 
       if (res.ok) {
-        toast.success("Message sent — we'll get back to you soon.");
+        toast.success("Message sent — we\u2019ll get back to you soon.");
         setName("");
         setEmail("");
         setPhone("");
@@ -43,7 +43,7 @@ function ContactForm() {
         const body = await res.json().catch(() => ({}));
         toast.error(body?.error || "Failed to send message.");
       }
-    } catch (err) {
+    } catch {
       toast.error("Network error. Try again later.");
     } finally {
       setIsSubmitting(false);
@@ -169,7 +169,7 @@ export default function Page() {
           <div className="w-full max-w-md">
             <h1 className="mb-4 text-2xl font-semibold">Contact Us</h1>
             <p className="mb-6 text-sm text-muted-foreground">
-              Have a question or need help? Send us a message and we'll respond as soon as possible.
+              Have a question or need help? Send us a message and we\u2019ll respond as soon as possible.
             </p>
 
             <ContactForm />
@@ -178,10 +178,12 @@ export default function Page() {
       </div>
 
       <div className="bg-muted relative hidden lg:block ">
-        <img
+        <Image
           src="/image.png"
           alt="Decorative"
-          className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.8] dark:grayscale "
+          fill
+          priority
+          className="absolute inset-0 object-cover dark:brightness-[0.8] dark:grayscale "
         />
       </div>
     </div>
