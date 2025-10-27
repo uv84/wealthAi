@@ -4,13 +4,13 @@ import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import type { Prisma } from "@prisma/client";
 import aj from "@/lib/arcjet";
 import { request } from "@arcjet/next";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
-type WithAmountDecimal = { amount: number | Prisma.Decimal } & Record<string, unknown>;
+type DecimalLike = { toNumber(): number };
+type WithAmountDecimal = { amount: number | DecimalLike } & Record<string, unknown>;
 const serializeAmount = <T extends WithAmountDecimal>(obj: T) => ({
   ...(obj as unknown as Record<string, unknown>),
   amount: typeof obj.amount === "number" ? obj.amount : obj.amount.toNumber(),
