@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import aj from "@/lib/arcjet";
 import { request } from "@arcjet/next";
+import type { Prisma } from "@prisma/client";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
@@ -83,7 +84,7 @@ export async function createTransaction(data: TransactionInput) {
     const newBalance = account.balance.toNumber() + balanceChange;
 
     // Create transaction and update account balance
-    const transaction = await db.$transaction(async (tx) => {
+  const transaction = await db.$transaction(async (tx: Prisma.TransactionClient) => {
       const newTransaction = await tx.transaction.create({
         data: {
           ...data,
@@ -169,7 +170,7 @@ export async function updateTransaction(id: string, data: TransactionInput) {
     const netBalanceChange = newBalanceChange - oldBalanceChange;
 
     // Update transaction and account balance in a transaction
-    const transaction = await db.$transaction(async (tx) => {
+  const transaction = await db.$transaction(async (tx: Prisma.TransactionClient) => {
       const updated = await tx.transaction.update({
         where: {
           id,
@@ -309,7 +310,10 @@ export async function scanReceipt(file: File) {
 }
 
 // Helper function to calculate next recurring date
-function calculateNextRecurringDate(startDate: Date, interval: string): Date {
+function calculateNextRecurringDate(
+  startDate: Date,
+  interval: "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY"
+): Date {
   const date = new Date(startDate);
 
   switch (interval) {
