@@ -3,8 +3,11 @@
 import { db } from "@/lib/prisma";
 import { subDays } from "date-fns";
 import { randomUUID } from "crypto";
-import type { TransactionStatus } from "@prisma/client";
 import type { Prisma } from "@prisma/client";
+
+// Prisma enums are not exported from @prisma/client in this setup (custom output),
+// so model the status as a string literal union to match the schema.
+type TransactionStatus = "PENDING" | "COMPLETED" | "FAILED";
 
 const ACCOUNT_ID = "97c29248-5d10-446f-b69a-d46c93304bc8";
 const USER_ID = "0aee6a7c-49a1-4c2b-a5b4-509a4545ee92";
@@ -44,24 +47,26 @@ function getRandomCategory(type: "INCOME" | "EXPENSE") {
   return { category: category.name, amount };
 }
 
+type SeedTransaction = {
+  id: string;
+  type: "INCOME" | "EXPENSE";
+  amount: number;
+  description: string;
+  date: Date;
+  category: string;
+  status: TransactionStatus;
+  userId: string;
+  accountId: string;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
 export async function seedTransactions(): Promise<
   | { success: true; message: string }
   | { success: false; error: string }
 > {
   try {
-    const transactions: {
-      id: string;
-      type: "INCOME" | "EXPENSE";
-      amount: number;
-      description: string;
-      date: Date;
-      category: string;
-      status: TransactionStatus;
-      userId: string;
-      accountId: string;
-      createdAt: Date;
-      updatedAt: Date;
-    }[] = [];
+    const transactions: SeedTransaction[] = [];
 
     let totalBalance = 0;
 
@@ -74,14 +79,14 @@ export async function seedTransactions(): Promise<
         const type: "INCOME" | "EXPENSE" = Math.random() < 0.4 ? "INCOME" : "EXPENSE";
         const { category, amount } = getRandomCategory(type);
 
-        const transaction = {
+        const transaction: SeedTransaction = {
           id: randomUUID(),
           type,
           amount,
           description: `${type === "INCOME" ? "Received" : "Paid for"} ${category}`,
           date,
           category,
-          status: "COMPLETED" as TransactionStatus,
+          status: "COMPLETED",
           userId: USER_ID,
           accountId: ACCOUNT_ID,
           createdAt: date,
