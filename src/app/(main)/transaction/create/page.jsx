@@ -15,9 +15,11 @@ export default async function AddTransactionPage({ searchParams }) {
   }
 
   return (
+    <>
+        <SiteHeader value="Add Transaction" />
+        
     <div className="max-w-3xl mx-auto px-5">
       <div className="mb-5">
-        <SiteHeader value="Add Transaction" />
       </div>
 
       <AddTransactionForm
@@ -27,5 +29,6 @@ export default async function AddTransactionPage({ searchParams }) {
         initialData={initialData}
       />
     </div>
+    </>
   );
 }

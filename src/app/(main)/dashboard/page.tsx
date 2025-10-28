@@ -6,9 +6,6 @@ import { BudgetProgress } from "./_components/budget-progress";
 import { Card, CardContent } from "@/components/ui/card";
 import { Plus } from "lucide-react";
 import { DashboardOverview } from "./_components/transaction-overview";
-import { SiteHeader } from "@/components/site-header";
-
-
 
 export default async function DashboardPage() {
   const [accounts, transactions] = await Promise.all([
@@ -25,8 +22,7 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <SiteHeader value="Dashboard" />
+    <div className="space-y-4 mt-3.5">
       {/* Budget Progress */}
       <BudgetProgress
         initialBudget={budgetData?.budget || null}
